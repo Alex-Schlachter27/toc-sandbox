@@ -1,0 +1,19 @@
+{
+  "name": "toc-sandbox",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "dev": "vite"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "typescript": "^5.2.2",
+    "vite": "^4.4.10"
+  },
+  "dependencies": {
+    "uuid": "^9.0.1"
+  }
+}
