@@ -30,10 +30,40 @@ export class ProjectsManager {
       if (!(projectsPage && detailsPage)) { return }
       projectsPage.style.display = "none"
       detailsPage.style.display = "flex"
+      this.setDetailsPage(project)
     })
     this.ui.append(project.ui)
     this.list.push(project)	
     return project
+  }
+
+  private setDetailsPage(project: Project) {
+    console.log(project)
+    const detailsPage = document.getElementById("project-details")
+    if (!detailsPage) { return }
+    const name = detailsPage.querySelector("[data-project-info='name']")
+    const description = detailsPage.querySelector("[data-project-info='description']")
+    if (name) { name.textContent = project.name }
+    if (description) { description.textContent = project.description }
+
+    const mainPage = document.getElementById("project-dashboard")
+    if (!mainPage) { return }
+    const nameMain = detailsPage.querySelector("[data-project-info='name']")
+    const descriptionMain = detailsPage.querySelector("[data-project-info='description']")
+    const status = mainPage.querySelector("[data-project-info='status']")
+    const userRole = mainPage.querySelector("[data-project-info='userRole']")
+    const finishDate = mainPage.querySelector("[data-project-info='finishDate']")
+    const cost = mainPage.querySelector("[data-project-info='cost']")
+    const progress = mainPage.querySelector("[data-project-info='progress']")
+    if (nameMain) { nameMain.textContent = project.name }
+    if (descriptionMain) { descriptionMain.textContent = project.description }
+    if (status) { status.textContent = project.status }
+    if (userRole) { userRole.textContent = project.userRole }
+    if (finishDate) { finishDate.textContent = project.finishDate.toISOString().split('T')[0].toString() }
+    if (cost) { cost.textContent = project.cost.toString() }
+    if (progress) { 
+      progress.textContent = project.progress.toString() + " %"
+    }
   }
 
   getProject(id: string) {
