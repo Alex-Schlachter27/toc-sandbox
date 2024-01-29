@@ -38,7 +38,7 @@ export class ProjectsManager {
   }
 
   private setDetailsPage(project: Project) {
-    console.log(project)
+    // console.log(project)
     const detailsPage = document.getElementById("project-details")
     if (!detailsPage) { return }
     const name = detailsPage.querySelector("[data-project-info='name']")
@@ -48,8 +48,8 @@ export class ProjectsManager {
 
     const mainPage = document.getElementById("project-dashboard")
     if (!mainPage) { return }
-    const nameMain = detailsPage.querySelector("[data-project-info='name']")
-    const descriptionMain = detailsPage.querySelector("[data-project-info='description']")
+    const nameMain = mainPage.querySelector("[data-project-info='name']")
+    const descriptionMain = mainPage.querySelector("[data-project-info='description']")
     const status = mainPage.querySelector("[data-project-info='status']")
     const userRole = mainPage.querySelector("[data-project-info='userRole']")
     const finishDate = mainPage.querySelector("[data-project-info='finishDate']")
@@ -64,6 +64,7 @@ export class ProjectsManager {
     if (progress) { 
       progress.textContent = project.progress.toString() + " %"
     }
+
   }
 
   getProject(id: string) {

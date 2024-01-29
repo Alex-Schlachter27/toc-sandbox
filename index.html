@@ -5,14 +5,16 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Document</title>
   <link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons+Round">
+  <link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons">
+  <link rel="stylesheet" href="components.css">
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
   <aside id="sidebar">
     <img id="company-logo" src="./assets/company-logo.svg" alt="Construction Company">
     <ul id="nav-buttons">
-      <li><span class="material-icons-round">apartment</span>Projects</li>
-      <li><span class="material-icons-round">people</span>Users</li>
+      <li id="project-nav-button" ><span class="material-icons-round">apartment</span>Projects</li>
+      <li id="user-nav-button"><span class="material-icons-round">people</span>Users</li>
     </ul>
   </aside>
   <main id="content">
@@ -74,7 +76,7 @@
       <header>
         <div>
           <h2 data-project-info="name">Hospital Center</h2>
-          <p style="color: #969696" data-project-info="description">Community hospital located at downtown</p>
+          <p style="color: #969696">Community hospital located at downtown</p>
         </div>
       </header>
       <div class="main-page-content">
@@ -136,7 +138,7 @@
             </div>
           </div>
         </div>
-        <div id="viewer-container" class="dashboard-card"></div>
+        <div id="viewer-container" class="dashboard-card" style="min-width: 0; position: relative"></div>
       </div>
     </div>
   </main>
