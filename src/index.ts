@@ -1,6 +1,5 @@
-import * as THREE from "three"
 import * as OBC from "openbim-components"
-import * as WEBIFC from "web-ifc"
+import { FragmentsGroup } from "bim-fragment"
 import { IProject, ProjectStatus, UserRole } from "./classes/Project"
 import { ProjectsManager } from "./classes/ProjectsManager"
 import { TodoCreator } from "./bim-components/TodoCreator"
@@ -106,9 +105,22 @@ const raycasterComponent = new OBC.SimpleRaycaster(viewer)
 viewer.raycaster = raycasterComponent
 
 viewer.init()
-// match camera aspect with viewer container ratio
 cameraComponent.updateAspect()
 rendererComponent.postproduction.enabled = true
+
+const grid = new OBC.SimpleGrid(viewer);
+
+const fragmentManager = new OBC.FragmentManager(viewer)
+function exportFragments(model: FragmentsGroup) {
+  const fragmentBinary = fragmentManager.export(model)
+  const blob = new Blob([fragmentBinary])
+  const url = URL.createObjectURL(blob)
+  const a = document.createElement('a')
+  a.href = url
+  a.download = `${model.name.replace(".ifc", "")}.frag`
+  a.click()
+  URL.revokeObjectURL(url)
+}
 
 const ifcLoader = new OBC.FragmentIfcLoader(viewer)
 ifcLoader.settings.wasm = {
@@ -152,28 +164,64 @@ async function createModelTree() {
   return tree
 }
 
-ifcLoader.onIfcLoaded.add(async (model) => {
-  highlighter.update()
-
-  classifier.byStorey(model)
-  classifier.byEntity(model)
-  classifier.byModel(model.name, model)
-  console.log(classifier)
-  const tree = await createModelTree()
-  await classificationsWindow.slots.content.dispose(true)
-  classificationsWindow.addChild(tree)
-
-  propertiesProcessor.process(model)
-  highlighter.events.select.onHighlight.add((fragmentMap) => {
-    const expressID = [...Object.values(fragmentMap)[0]][0]
-    propertiesProcessor.renderProperties(model, Number(expressID))
-  })
+const culler = new OBC.ScreenCuller(viewer)
+cameraComponent.controls.addEventListener("sleep", () => {
+  culler.needsUpdate = true
 })
 
-const propertiesFinder = new OBC.IfcPropertiesFinder(viewer)
-await propertiesFinder.init()
-propertiesFinder.onFound.add((fragmentIdMap) => {
-  highlighter.highlightByID("select", fragmentIdMap)
+async function onModelLoaded(model: FragmentsGroup) {
+  highlighter.update()
+  for (const fragment of model.items) {culler.add(fragment.mesh)}
+  culler.needsUpdate = true
+
+  try {
+    classifier.byStorey(model)
+    classifier.byEntity(model)
+    const tree = await createModelTree()
+    await classificationsWindow.slots.content.dispose(true)
+    classificationsWindow.addChild(tree)
+  
+    propertiesProcessor.process(model)
+    highlighter.events.select.onHighlight.add((fragmentMap) => {
+      const expressID = [...Object.values(fragmentMap)[0]][0]
+      propertiesProcessor.renderProperties(model, Number(expressID))
+    })
+  } catch (error) {
+    alert(error)
+  }
+}
+
+ifcLoader.onIfcLoaded.add(async (model) => {
+  // exportFragments(model)
+  onModelLoaded(model)
+})
+
+fragmentManager.onFragmentsLoaded.add((model) => {
+  model.properties = {} //Get this from a JSON file exported from the IFC first load!
+  onModelLoaded(model)
+})
+
+const importFragmentBtn = new OBC.Button(viewer)
+importFragmentBtn.materialIcon = "upload"
+importFragmentBtn.tooltip = "Load FRAG"
+
+importFragmentBtn.onClick.add(() => {
+  const input = document.createElement('input')
+  input.type = 'file'
+  input.accept = '.frag'
+  const reader = new FileReader()
+  reader.addEventListener("load", async () => {
+    const binary = reader.result
+    if (!(binary instanceof ArrayBuffer)) { return }
+    const fragmentBinary = new Uint8Array(binary)
+    await fragmentManager.load(fragmentBinary)
+  })
+  input.addEventListener('change', () => {
+    const filesList = input.files
+    if (!filesList) { return }
+    reader.readAsArrayBuffer(filesList[0])
+  })
+  input.click()
 })
 
 const todoCreator = new TodoCreator(viewer)
@@ -182,14 +230,13 @@ await todoCreator.setup()
 const simpleQto = new SimpleQto(viewer)
 await simpleQto.setup()
 
-
 const toolbar = new OBC.Toolbar(viewer)
 toolbar.addChild(
   ifcLoader.uiElement.get("main"),
   classificationsBtn,
-  propertiesProcessor.uiElement.get("main"),
+  propertiesProcessor.uiElement.get("main"),  
+  fragmentManager.uiElement.get("main"),
   todoCreator.uiElement.get("activationButton"),
-  simpleQto.uiElement.get("activationButton"),
-  propertiesFinder.uiElement.get("main")
+  simpleQto.uiElement.get("activationButton")
 )
 viewer.ui.addToolbar(toolbar)
